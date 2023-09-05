@@ -1,0 +1,13 @@
+<launch>
+
+
+  <!-- Load grid map filter chain configuration -->
+  <rosparam command="load" file="$(find towr_grid_map)/config/filters_config.yaml" />
+  
+  <!-- Launch the grid map filters demo node. -->
+  <node pkg="towr_grid_map" type="main_node" name="main_node" output="screen">
+    
+
+  </node>
+
+</launch>
