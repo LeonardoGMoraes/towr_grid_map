@@ -16,16 +16,14 @@ class Grid2Towr
 {
 public:
 
-  int a;
-  //grid_map::GridMap map;
   GridMap map;
-  //grid_map::GridMap outputMap;
   GridMap outputMap;
-  filters::FilterChain<grid_map::GridMap> filterChain_;
-  std::string filterChainParametersName_;
-  ros::NodeHandle& nodeHandle_;
+  //filters::FilterChain<grid_map::GridMap> filterChain_;
+  //std::string filterChainParametersName_;
+  //ros::NodeHandle& nodeHandle_;
 
-  Grid2Towr(ros::NodeHandle& nodeHandle);
+  //Grid2Towr(ros::NodeHandle& nodeHandle);
+  Grid2Towr();
   
   //obter o grid e.g msg em ROS
   //Converter uma msg (em um determinado topico) para um gridmap
@@ -33,21 +31,27 @@ public:
 
   //altura no ponto (x,y)
   //dado um ponto x,y retornar a altura
-  float GetElevation(double x, double y);
+  double GetElevation(double x, double y);
   
   //aplicar os filtros no grid obtido
   void ApplyFilter();
 
   //dado um ponto x,y retornar a normal (retornar um vector3D)
-  std::vector<float> GetNormalVector(double x, double y);
+  std::vector<double> GetNormalVector(double x, double y);
 
   //Equacao do Plano no ponto x y
   void PlaneEquation(double x, double y);
 
 
   //Derivada aplicada naquele ponto
-  double GetHeightDerivWrtX(double x, double y);
-  double GetHeightDerivWrtY(double x, double y);
+  //Calculado pelas componentes do vetor normal com a componente z=1
+  double GetHeightDerivWrtX1(double x, double y);
+  double GetHeightDerivWrtY1(double x, double y);
+
+  //Derivada aplicada naquele ponto
+  //Calculado numericamente
+  double GetHeightDerivWrtX2(double x, double y);
+  double GetHeightDerivWrtY2(double x, double y);
 
   //Derivada segunda aplicada naquele ponto
   double GetHeightDerivWrtXX(double x, double y);
@@ -55,9 +59,6 @@ public:
   double GetHeightDerivWrtXY(double x, double y);
   double GetHeightDerivWrtYX(double x, double y);
 
-  //vetor normal ao plano no ponto (x,y)
-
- 
 
 };
 

@@ -108,8 +108,8 @@ find_package(catkin REQUIRED COMPONENTS
 ## CATKIN_DEPENDS: catkin_packages dependent projects also need
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
-  INCLUDE_DIRS include/towr_grid_map/
-  LIBRARIES towr_grid_map
+  INCLUDE_DIRS include
+  LIBRARIES ${PROJECT_NAME}
   CATKIN_DEPENDS filters grid_map_core grid_map_filters grid_map_msgs grid_map_ros roscpp rospy std_msgs
 #  DEPENDS system_lib
 )
@@ -125,7 +125,7 @@ include_directories(
 )
 
 ## Declare a C++ library
- add_library (towr_grid_map_lib
+ add_library (${PROJECT_NAME}
    src/grid2towr.cpp
  )
 
@@ -155,7 +155,9 @@ include_directories(
 # )
 
 add_executable(main_node src/main_node.cpp src/grid2towr.cpp)
-target_link_libraries(main_node ${catkin_LIBRARIES} towr_grid_map_lib)
+
+target_link_libraries(main_node ${catkin_LIBRARIES} towr_grid_map)
+target_link_libraries(${PROJECT_NAME} ${catkin_LIBRARIES})
 
 #############
 ## Install ##
@@ -184,6 +186,18 @@ target_link_libraries(main_node ${catkin_LIBRARIES} towr_grid_map_lib)
 #   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
 #   RUNTIME DESTINATION ${CATKIN_GLOBAL_BIN_DESTINATION}
 # )
+
+install(
+  TARGETS ${PROJECT_NAME}
+  ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+  LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+  RUNTIME DESTINATION ${CATKIN_GLOBAL_BIN_DESTINATION}
+)
+
+install(
+  DIRECTORY include/${PROJECT_NAME}/
+  DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
+)
 
 ## Mark cpp header files for installation
 # install(DIRECTORY include/${PROJECT_NAME}/

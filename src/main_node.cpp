@@ -14,15 +14,63 @@ int main(int argc, char** argv)
   ros::init(argc, argv, "main_node");
   ros::NodeHandle n;
 
-  Grid2Towr myObject(n);
-  myObject.GenericGridmap();
-  myObject.ApplyFilter();
+  //Grid2Towr myObject(n);
+  //myObject.GenericGridmap();
+  //myObject.ApplyFilter();
 
-  std::vector<float> vector;
-  vector = myObject.GetNormalVector(0.5,0.5);
-  cout << "something  " << vector[0] << endl;
-  cout << "something  " << vector[1] << endl;
-  cout << "something  " << vector[2] << endl;
+  Grid2Towr myObject;
+  myObject.GenericGridmap();
+
+  double px = 0.3;
+  double py = 0.3;
+  
+  
+  double altura = myObject.GetElevation(px,py);
+  cout << "altura:   " << altura << endl;
+  
+  
+  /*
+  std::vector<double> vector;
+  vector = myObject.GetNormalVector(px,py);
+  cout << "comp1  " << vector[0] << endl;
+  cout << "comp2  " << vector[1] << endl;
+  cout << "comp3  " << vector[2] << endl;
+  
+
+  double dx;
+  dx = myObject.GetHeightDerivWrtX1(px,py);
+  cout << "derivada em x (pelas componentes do vetor normal com z = 1):  " << dx << endl;
+  */
+
+  double dx2;
+  dx2 = myObject.GetHeightDerivWrtX2(px,py);
+  cout << "derivada em x (numericamente): " << dx2 << endl;
+
+  double dxx;
+  dxx = myObject.GetHeightDerivWrtXX(px,py);
+  cout << "derivada segunda em x (numericamente): " << dxx << endl;
+
+  double dxy;
+  dxy = myObject.GetHeightDerivWrtXY(px,py);
+  cout << "derivada segunda em xy (numericamente): " << dxy << endl;
+
+  double dyx;
+  dyx = myObject.GetHeightDerivWrtYX(px,py);
+  cout << "derivada segunda em yx (numericamente): " << dyx << endl;
+  /*
+  double dy;
+  dy = myObject.GetHeightDerivWrtY1(10,10);
+  cout << "derivada em y  " << dy << endl;
+  */
+
+/*
+  for (int i=0; i<40; i++){
+    vector = myObject.GetNormalVector((0.1+i/10),(0.1+i/10));
+    cout << "something  " << vector[2] << endl;
+
+}
+
+*/
 
 
 
