@@ -25,10 +25,15 @@ public:
   //Grid2Towr(ros::NodeHandle& nodeHandle);
   Grid2Towr();
   
-  //obter o grid e.g msg em ROS
-  //Converter uma msg (em um determinado topico) para um gridmap
-  void GenericGridmap();
+  //Funcoes Para Geracao de Grids
+  void RandomGridmap();
+  void SinGridmap();
+  void SlopesGridmap();
+  void SlopesRandomGridmap();
+  void SlopesSinRandomGridmap();
+  void SlopesGridmapTowr();
 
+  
   //altura no ponto (x,y)
   //dado um ponto x,y retornar a altura
   double GetElevation(double x, double y);
@@ -38,9 +43,6 @@ public:
 
   //dado um ponto x,y retornar a normal (retornar um vector3D)
   std::vector<double> GetNormalVector(double x, double y);
-
-  //Equacao do Plano no ponto x y
-  void PlaneEquation(double x, double y);
 
 
   //Derivada aplicada naquele ponto

@@ -19,9 +19,9 @@ int main(int argc, char** argv)
   //myObject.ApplyFilter();
 
   Grid2Towr myObject;
-  myObject.GenericGridmap();
+  //myObject.GenericGridmap();
 
-  double px = 0.3;
+  double px = 0.9;
   double py = 0.3;
   
   
