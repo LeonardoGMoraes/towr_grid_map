@@ -32,6 +32,7 @@ public:
   void SlopesRandomGridmap();
   void SlopesSinRandomGridmap();
   void SlopesGridmapTowr();
+  void RosbagGridmap();
 
   
   //altura no ponto (x,y)

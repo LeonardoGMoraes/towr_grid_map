@@ -3,6 +3,11 @@
 #include <grid_map_ros/grid_map_ros.hpp>
 #include <grid_map_msgs/GridMap.h>
 #include <cmath>
+#include <rosbag/bag.h>
+#include <rosbag/view.h>
+
+#include <boost/foreach.hpp>
+#define foreach BOOST_FOREACH
 
 
 /*
@@ -17,10 +22,61 @@ Grid2Towr::Grid2Towr(ros::NodeHandle& nodeHandle)
 
 Grid2Towr::Grid2Towr() 
 {
-  this->RandomGridmap();
+  //this->RandomGridmap();
+  //this->SlopesGridmap();
+  //this->SlopesSinRandomGridmap();
+  this->RosbagGridmap();
+  //this->SinGridmap();
 }
 
 //Funcoes de geracao de gridmaps
+
+void Grid2Towr::RosbagGridmap()
+{
+
+  /**/
+  rosbag::Bag bag;
+  bag.open("/home/leo/mestrado_ws/src/legged_control/rosbag/gridmap/flat.bag", rosbag::bagmode::Read);
+  std::vector<std::string> topics;
+  topics.push_back(std::string("/elevation_mapping/elevation_map"));
+  int i = 0;
+  
+  
+  rosbag::View view(bag, rosbag::TopicQuery(topics));
+  foreach(rosbag::MessageInstance const m, view){
+    grid_map_msgs::GridMap::ConstPtr s = m.instantiate<grid_map_msgs::GridMap>();
+    if (s != NULL)
+      if (i==0){
+        //std::cout << s->data[0].data[0] << std::endl;
+        //std::cout << *s << std::endl;
+        GridMapRosConverter::fromMessage(*s, map);
+        
+      }
+      i++;
+
+  }
+  
+  
+  for (GridMapIterator it(map); !it.isPastEnd(); ++it) {
+      Position position;
+      map.getPosition(*it, position);
+      if (std::to_string(map.at("elevation", *it)) == "nan"){ 
+        map.at("elevation", *it) = 0.0; //Tratar nan
+      }
+      /*
+      //Conferir os valores do Grid
+      //if ((std::to_string((map.at("elevation", *it))) != "nan") && ((map.at("elevation", *it)) > 0.001)){
+      if ((map.at("elevation", *it)) != 0){
+        std::cout << "posicao em x: " << position.x();
+        std::cout << " posicao em y: " << position.y();
+        std::cout << " elevation: " << map.at("elevation", *it) << endl;
+      }
+      */
+
+  }
+  
+  
+}
 
 void Grid2Towr::RandomGridmap()
 {
@@ -52,6 +108,7 @@ void Grid2Towr::RandomGridmap()
         }
         //h = a_*sin(w_*x + pi/2);
         map.at("elevation", *it) = hh;
+        //std::cout << map.at("elevation", *it) << endl;
 
 
       
@@ -69,7 +126,7 @@ void Grid2Towr::SinGridmap()
 
   map.add("elevation");
   map.setFrameId("map");
-  map.setGeometry(Length(10, 6), 0.005);
+  map.setGeometry(Length(10, 6), 0.05);
 
     for (GridMapIterator it(map); !it.isPastEnd(); ++it) {
         Position position;
@@ -81,6 +138,9 @@ void Grid2Towr::SinGridmap()
           hh = 0.0;
         }
         map.at("elevation", *it) = hh;
+        //std::cout << "posicao em x: " << position.x();
+        //std::cout << " posicao em y: " << position.y();
+        //std::cout << " elevation: " << hh << endl;
 
 
       
@@ -146,6 +206,9 @@ void Grid2Towr::SlopesGridmap()
           hh = i*position.x()+j;
         }
         map.at("elevation", *it) = hh;
+        std::cout << "posicao em x: " << position.x();
+        std::cout << " posicao em y: " << position.y();
+        std::cout << " elevation: " << map.at("elevation", *it) << endl;
 
 
       
@@ -455,7 +518,7 @@ double Grid2Towr::GetHeightDerivWrtY1(double x, double y){
 //Funcoes para calculos das derivadas primeiras e segundas 
 double Grid2Towr::GetHeightDerivWrtX2(double x, double y){
   double dx;
-  dx = (-1*this->GetElevation(x-0.03,y)+0*this->GetElevation(x,y)+1*this->GetElevation(x+0.03,y))/(2*1.0*pow(0.03,1));
+  dx = (-1*this->GetElevation(x-0.3,y)+0*this->GetElevation(x,y)+1*this->GetElevation(x+0.3,y))/(2*1.0*pow(0.3,1));
   //dx = 0.0;
 
   if (fabs(dx)< 0.001){
@@ -467,7 +530,7 @@ double Grid2Towr::GetHeightDerivWrtX2(double x, double y){
 
 double Grid2Towr::GetHeightDerivWrtY2(double x, double y){
   double dy;
-  dy = (-1*this->GetElevation(x,y-0.03)+0*this->GetElevation(x,y)+1*this->GetElevation(x,y+0.03))/(2*1.0*pow(0.03,1));
+  dy = (-1*this->GetElevation(x,y-0.3)+0*this->GetElevation(x,y)+1*this->GetElevation(x,y+0.3))/(2*1.0*pow(0.3,1));
   //dy = 0.0;
 
   if (fabs(dy)< 0.001){
@@ -479,7 +542,7 @@ double Grid2Towr::GetHeightDerivWrtY2(double x, double y){
 double Grid2Towr::GetHeightDerivWrtXX(double x, double y){
   double dxx;
   //dxx = (-1*this->GetHeightDerivWrtX2(x-0.03,y)+0*this->GetHeightDerivWrtX2(x,y)+1*this->GetHeightDerivWrtX2(x+0.03,y))/(2*1.0*pow(0.03,1));
-  dxx = (1*this->GetElevation(x-0.03,y)-2*this->GetElevation(x,y)+1*this->GetElevation(x+0.03,y))/(1*1.0*pow(0.03,2));
+  dxx = (1*this->GetElevation(x-0.3,y)-2*this->GetElevation(x,y)+1*this->GetElevation(x+0.3,y))/(1*1.0*pow(0.3,2));
   //dxx = 0.0;
 
   if (fabs(dxx)< 0.001){
@@ -492,7 +555,7 @@ double Grid2Towr::GetHeightDerivWrtXX(double x, double y){
 double Grid2Towr::GetHeightDerivWrtYY(double x, double y){
   double dyy;
   //dyy = (-1*this->GetHeightDerivWrtY2(x,y-0.03)+0*this->GetHeightDerivWrtY2(x,y)+1*this->GetHeightDerivWrtY2(x,y+0.03))/(2*1.0*pow(0.03,1));
-  dyy = (1*this->GetElevation(x,y-0.03)-2*this->GetElevation(x,y)+1*this->GetElevation(x,y+0.03))/(1*1.0*pow(0.03,2));
+  dyy = (1*this->GetElevation(x,y-0.3)-2*this->GetElevation(x,y)+1*this->GetElevation(x,y+0.3))/(1*1.0*pow(0.3,2));
   //dyy = 0.0;
 
   if (fabs(dyy)< 0.001){
@@ -503,7 +566,7 @@ double Grid2Towr::GetHeightDerivWrtYY(double x, double y){
 
 double Grid2Towr::GetHeightDerivWrtXY(double x, double y){
   double dxy;
-  dxy = (-1*this->GetHeightDerivWrtX2(x,y-0.03)+0*this->GetHeightDerivWrtX2(x,y)+1*this->GetHeightDerivWrtX2(x,y+0.03))/(2*1.0*pow(0.03,1));
+  dxy = (-1*this->GetHeightDerivWrtX2(x,y-0.3)+0*this->GetHeightDerivWrtX2(x,y)+1*this->GetHeightDerivWrtX2(x,y+0.3))/(2*1.0*pow(0.3,1));
   //dxy = 0.0;
 
   if (fabs(dxy)< 0.001){
@@ -515,7 +578,7 @@ double Grid2Towr::GetHeightDerivWrtXY(double x, double y){
 
 double Grid2Towr::GetHeightDerivWrtYX(double x, double y){
   double dyx;
-  dyx = (-1*this->GetHeightDerivWrtY2(x-0.03,y)+0*this->GetHeightDerivWrtY2(x,y)+1*this->GetHeightDerivWrtY2(x+0.03,y))/(2*1.0*pow(0.03,1));
+  dyx = (-1*this->GetHeightDerivWrtY2(x-0.3,y)+0*this->GetHeightDerivWrtY2(x,y)+1*this->GetHeightDerivWrtY2(x+0.3,y))/(2*1.0*pow(0.3,1));
   //dyx = 0.0;
 
   if (fabs(dyx)< 0.001){

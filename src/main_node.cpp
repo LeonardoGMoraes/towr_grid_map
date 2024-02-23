@@ -21,12 +21,13 @@ int main(int argc, char** argv)
   Grid2Towr myObject;
   //myObject.GenericGridmap();
 
-  double px = 0.9;
-  double py = 0.3;
+  double px = 1.5;
+  double py = 0.0;
   
   
-  double altura = myObject.GetElevation(px,py);
-  cout << "altura:   " << altura << endl;
+  //double altura = myObject.GetElevation(px,py);
+  //double altura = myObject.GetElevation(px,py);
+  //cout << "altura:   " << altura << endl;
   
   
   /*
@@ -44,24 +45,19 @@ int main(int argc, char** argv)
 
   double dx2;
   dx2 = myObject.GetHeightDerivWrtX2(px,py);
-  cout << "derivada em x (numericamente): " << dx2 << endl;
+  //cout << "derivada em x (numericamente): " << dx2 << endl;
 
   double dxx;
   dxx = myObject.GetHeightDerivWrtXX(px,py);
-  cout << "derivada segunda em x (numericamente): " << dxx << endl;
+  //cout << "derivada segunda em x (numericamente): " << dxx << endl;
 
   double dxy;
   dxy = myObject.GetHeightDerivWrtXY(px,py);
-  cout << "derivada segunda em xy (numericamente): " << dxy << endl;
+  //cout << "derivada segunda em xy (numericamente): " << dxy << endl;
 
   double dyx;
   dyx = myObject.GetHeightDerivWrtYX(px,py);
-  cout << "derivada segunda em yx (numericamente): " << dyx << endl;
-  /*
-  double dy;
-  dy = myObject.GetHeightDerivWrtY1(10,10);
-  cout << "derivada em y  " << dy << endl;
-  */
+  //cout << "derivada segunda em yx (numericamente): " << dyx << endl;
 
 /*
   for (int i=0; i<40; i++){
