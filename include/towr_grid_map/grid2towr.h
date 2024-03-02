@@ -18,6 +18,7 @@ public:
 
   GridMap map;
   GridMap outputMap;
+  float hd = 0.01; //delta usado nas derivadas numericas
   //filters::FilterChain<grid_map::GridMap> filterChain_;
   //std::string filterChainParametersName_;
   //ros::NodeHandle& nodeHandle_;
@@ -33,6 +34,8 @@ public:
   void SlopesSinRandomGridmap();
   void SlopesGridmapTowr();
   void RosbagGridmap();
+  void Block01();
+  void Block005();
 
   
   //altura no ponto (x,y)
