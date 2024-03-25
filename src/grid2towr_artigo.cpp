@@ -25,187 +25,41 @@ Grid2Towr::Grid2Towr()
   //this->RandomGridmap();
   //this->SlopesGridmap();
   //this->SlopesSinRandomGridmap();
-  this->RosbagGridmap();
+  //this->RosbagGridmap();
   //this->SinGridmap();
   //this->Block01();
-  //this->Block005();
-  //this->Stairs();
-  //this->Colision();
-
+  this->Block005();
 }
 
 //Funcoes de geracao de gridmaps
-void Grid2Towr::Colision(){
-  const double a = 0.09;
-  const double l = 0.8;
-  double hh;
-  const double start = 1.0;
-  const double end = 2.0;
-  const double lat = 0.18;
 
-  map.add("elevation");
-  map.setFrameId("map");
-  map.setGeometry(Length(10, 6), 0.05);
-
-    for (GridMapIterator it(map); !it.isPastEnd(); ++it) {
-        Position position;
-        map.getPosition(*it, position);
-
-        if (position.x()<start){
-          hh = 0.0;
-        }
-        if ((position.x()>=start) && (position.x()<=end) && (position.y()<=lat) && (position.y()>=-lat)){
-          hh = 0.5;
-        }
-
-        map.at("elevation", *it) = hh;
-    }
-}
-
-void Grid2Towr::Stairs2()
+void Grid2Towr::TopicListener()
 {
 
-  const double a = 0.06;
-  const double l = 0.8;
-  double hh;
-  const double start = 1.0;
-
-  map.add("elevation");
-  map.setFrameId("map");
-  map.setGeometry(Length(10, 6), 0.05);
-
-    for (GridMapIterator it(map); !it.isPastEnd(); ++it) {
-        Position position;
-        map.getPosition(*it, position);
-
-        if (position.x()<start){
-          hh = 0.0;
-        }
-        if (position.x()>=start){
-          hh = 1.0;
-        }
-
-        map.at("elevation", *it) = hh;
-    }
-}
-
-void Grid2Towr::Stairs()
-{
-
-  const double a = 0.06;
-  const double l = 0.8;
-  double hh;
-  const double start = 1.0;
-
-  map.add("elevation");
-  map.setFrameId("map");
-  map.setGeometry(Length(10, 3), 0.01);
-
-    for (GridMapIterator it(map); !it.isPastEnd(); ++it) {
-        Position position;
-        map.getPosition(*it, position);
-
-        if (position.x()<start){
-          hh = 0.0;
-        }
-
-        if ((position.x()>=start) && (position.x()<(start + l))){
-          hh = a;
-        }
-
-        if ((position.x()>=(start + l)) && (position.x() < (start + 2*l))){
-          hh = 2*a;
-        }
-
-        if ((position.x()>=(start + 2*l)) &&  (position.x() < (start + 3*l))){
-          hh = 3*a;
-        }
-        if ((position.x()>=(start + 3*l)) &&  (position.x() < (start + 4*l))){
-          hh = 2*a;
-        }
-        if ((position.x()>=(start + 4*l)) &&  (position.x() < (start + 5*l))){
-          hh = a;
-        }
-        if ((position.x()>=(start + 5*l))){
-          hh = 0;
-        }
-
-        map.at("elevation", *it) = hh;
-    }
 }
 
 void Grid2Towr::RosbagGridmap()
 {
 
-  /**/
   rosbag::Bag bag;
-  bag.open("/home/leo/mestrado_ws/src/rosbags_mestrado/gridmap/terreno7_gridmap.bag", rosbag::bagmode::Read);
+  bag.open("/home/leo/mestrado_ws/src/rosbags_mestrado/gridmap/bloco005.bag", rosbag::bagmode::Read);
   std::vector<std::string> topics;
   topics.push_back(std::string("/elevation_mapping/elevation_map"));
-  int i = 0;
-  
   
   rosbag::View view(bag, rosbag::TopicQuery(topics));
   foreach(rosbag::MessageInstance const m, view){
     grid_map_msgs::GridMap::ConstPtr s = m.instantiate<grid_map_msgs::GridMap>();
     if (s != NULL)
-      if (i==0){
-        //std::cout << s->data[0].data[0] << std::endl;
-        //std::cout << *s << std::endl;
-        GridMapRosConverter::fromMessage(*s, map);
-        
-      }
-      i++;
-
+        GridMapRosConverter::fromMessage(*s, map);        
   }
-  
-  
+   
   for (GridMapIterator it(map); !it.isPastEnd(); ++it) {
       Position position;
       map.getPosition(*it, position);
       if (std::to_string(map.at("elevation", *it)) == "nan"){ 
         map.at("elevation", *it) = 0.0; //Tratar nan
       }
-
-      //if (position.x() < 0.75){
-      //  map.at("elevation", *it) = 0.0;
-      //}
-      /*
-
-      //Conferir os valores do Grid
-      //if ((std::to_string((map.at("elevation", *it))) != "nan") && ((map.at("elevation", *it)) > 0.001)){
-      if ((map.at("elevation", *it)) != 0){
-        std::cout << "posicao em x: " << position.x();
-        std::cout << " posicao em y: " << position.y();
-        std::cout << " elevation: " << map.at("elevation", *it) << endl;
-      }
-      */
-
   }
-  
-  
-  // Filter values for submap (iterators).
-  map.add("elevation_filtered", map.get("elevation"));
-  for (GridMapIterator it(map); !it.isPastEnd(); ++it) {
-    Position currentPosition;
-    map.getPosition(*it, currentPosition);
-    double radius = 0.04; //tava 0.1
-    double mean = 0.0;
-    double sumOfWeights = 0.0;
-    // Compute weighted mean.
-    for (CircleIterator circleIt(map, currentPosition, radius); !circleIt.isPastEnd(); ++circleIt) {
-      if (!map.isValid(*circleIt, "elevation")) continue;
-      Position currentPositionInCircle;
-      map.getPosition(*circleIt, currentPositionInCircle);
-      // Computed weighted mean based on Euclidian distance.
-      double distance = (currentPosition - currentPositionInCircle).norm();
-      double weight = pow(radius - distance, 2);
-      mean += weight * map.at("elevation", *circleIt);
-      sumOfWeights += weight;
-    }
-    map.at("elevation_filtered", *it) = mean / sumOfWeights;
-  }
-  
 }
 
 void Grid2Towr::RandomGridmap()
@@ -608,98 +462,26 @@ void Grid2Towr::SlopesGridmapTowr()
     }
 }
 
-//Get Height given x,y
+//Pegar a altura referente a um ponto XY
 double Grid2Towr::GetElevation(double x, double y)
 {
   float felevation;
+
   try {
-    felevation = map.atPosition("elevation_filtered",{x,y},InterpolationMethods::INTER_LINEAR);
+    felevation = map.atPosition("elevation",{x,y},InterpolationMethods::INTER_LINEAR);
   }
+
   catch(...){
-    felevation = 0; //If a point is off the grid
+    felevation = 0;
   }
+  
   double elevation = (double) felevation;
+  //if (elevation > 0.08){
+   // elevation = 0.9;
+  //}
 
   return elevation; 
 }
-
-//Get Derivatives given x,y 
-double Grid2Towr::GetHeightDerivWrtX2(double x, double y){
-  double dx;
-  dx = (-1*this->GetElevation(x-hd,y)+0*this->GetElevation(x,y)+1*this->GetElevation(x+hd,y))/(2*1.0*pow(hd,1));
-  //numerical derivative
-
-  if (fabs(dx)< 0.001){
-    dx = 0.0; // avoid rounding errors
-  }
-
-  return dx;
-}
-
-double Grid2Towr::GetHeightDerivWrtY2(double x, double y){
-  double dy;
-  dy = (-1*this->GetElevation(x,y-hd)+0*this->GetElevation(x,y)+1*this->GetElevation(x,y+hd))/(2*1.0*pow(hd,1));
-  //dy = 0.0;
-
-  if (fabs(dy)< 0.001){
-    dy = 0.0;
-  }
-  return dy;
-}
-
-double Grid2Towr::GetHeightDerivWrtXX(double x, double y){
-  double dxx;
-  //dxx = (-1*this->GetHeightDerivWrtX2(x-0.03,y)+0*this->GetHeightDerivWrtX2(x,y)+1*this->GetHeightDerivWrtX2(x+0.03,y))/(2*1.0*pow(0.03,1));
-
-  dxx = (1*this->GetElevation(x-hd,y)-2*this->GetElevation(x,y)+1*this->GetElevation(x+hd,y))/(1*1.0*pow(hd,2));
-  //dxx = 0.0;
-
-  if (fabs(dxx)< 0.001){
-    dxx = 0.0;
-  }
-
-  return dxx;
-}
-
-double Grid2Towr::GetHeightDerivWrtYY(double x, double y){
-  double dyy;
-  //dyy = (-1*this->GetHeightDerivWrtY2(x,y-0.03)+0*this->GetHeightDerivWrtY2(x,y)+1*this->GetHeightDerivWrtY2(x,y+0.03))/(2*1.0*pow(0.03,1));
-
-  dyy = (1*this->GetElevation(x,y-hd)-2*this->GetElevation(x,y)+1*this->GetElevation(x,y+hd))/(1*1.0*pow(hd,2));
-  //dyy = 0.0;
-
-  if (fabs(dyy)< 0.001){
-    dyy = 0.0;
-  }
-  return dyy;
-}
-
-double Grid2Towr::GetHeightDerivWrtXY(double x, double y){
-  double dxy;
-
-  dxy = (-1*this->GetHeightDerivWrtX2(x,y-hd)+0*this->GetHeightDerivWrtX2(x,y)+1*this->GetHeightDerivWrtX2(x,y+hd))/(2*1.0*pow(hd,1));
-  //dxy = 0.0;
-
-  if (fabs(dxy)< 0.001){
-    dxy = 0.0;
-  }
-  
-  return dxy;
-}
-
-double Grid2Towr::GetHeightDerivWrtYX(double x, double y){
-  double dyx;
-  dyx = (-1*this->GetHeightDerivWrtY2(x-hd,y)+0*this->GetHeightDerivWrtY2(x,y)+1*this->GetHeightDerivWrtY2(x+hd,y))/(2*1.0*pow(hd,1));
-  //dyx = 0.0;
-
-  if (fabs(dyx)< 0.001){
-    dyx = 0.0;
-  }
-
-  return dyx;
-}
-
-
 
 /*
 void Grid2Towr::ApplyFilter()
@@ -782,6 +564,88 @@ double Grid2Towr::GetHeightDerivWrtY1(double x, double y){
   return dy;
 }
 */
+
+
+//Funcoes para calculos das derivadas primeiras e segundas 
+double Grid2Towr::GetHeightDerivWrtX2(double x, double y){
+  double dx;
+  dx = (-1*this->GetElevation(x-hd,y)+0*this->GetElevation(x,y)+1*this->GetElevation(x+hd,y))/(2*1.0*pow(hd,1));
+  //dx = 0.0;
+
+  if (fabs(dx)< 0.001){
+    dx = 0.0;
+  }
+
+  if (fabs(dx) > 0.1){
+    dx = 1000;
+  }
+  return dx;
+
+}
+
+double Grid2Towr::GetHeightDerivWrtY2(double x, double y){
+  double dy;
+  dy = (-1*this->GetElevation(x,y-hd)+0*this->GetElevation(x,y)+1*this->GetElevation(x,y+hd))/(2*1.0*pow(hd,1));
+  //dy = 0.0;
+
+  if (fabs(dy)< 0.001){
+    dy = 0.0;
+  }
+  return dy;
+}
+
+double Grid2Towr::GetHeightDerivWrtXX(double x, double y){
+  double dxx;
+  //dxx = (-1*this->GetHeightDerivWrtX2(x-0.03,y)+0*this->GetHeightDerivWrtX2(x,y)+1*this->GetHeightDerivWrtX2(x+0.03,y))/(2*1.0*pow(0.03,1));
+
+  dxx = (1*this->GetElevation(x-hd,y)-2*this->GetElevation(x,y)+1*this->GetElevation(x+hd,y))/(1*1.0*pow(hd,2));
+  //dxx = 0.0;
+
+  if (fabs(dxx)< 0.001){
+    dxx = 0.0;
+  }
+
+  return dxx;
+}
+
+double Grid2Towr::GetHeightDerivWrtYY(double x, double y){
+  double dyy;
+  //dyy = (-1*this->GetHeightDerivWrtY2(x,y-0.03)+0*this->GetHeightDerivWrtY2(x,y)+1*this->GetHeightDerivWrtY2(x,y+0.03))/(2*1.0*pow(0.03,1));
+
+  dyy = (1*this->GetElevation(x,y-hd)-2*this->GetElevation(x,y)+1*this->GetElevation(x,y+hd))/(1*1.0*pow(hd,2));
+  //dyy = 0.0;
+
+  if (fabs(dyy)< 0.001){
+    dyy = 0.0;
+  }
+  return dyy;
+}
+
+double Grid2Towr::GetHeightDerivWrtXY(double x, double y){
+  double dxy;
+
+  dxy = (-1*this->GetHeightDerivWrtX2(x,y-hd)+0*this->GetHeightDerivWrtX2(x,y)+1*this->GetHeightDerivWrtX2(x,y+hd))/(2*1.0*pow(hd,1));
+  //dxy = 0.0;
+
+  if (fabs(dxy)< 0.001){
+    dxy = 0.0;
+  }
+  
+  return dxy;
+}
+
+double Grid2Towr::GetHeightDerivWrtYX(double x, double y){
+  double dyx;
+  dyx = (-1*this->GetHeightDerivWrtY2(x-hd,y)+0*this->GetHeightDerivWrtY2(x,y)+1*this->GetHeightDerivWrtY2(x+hd,y))/(2*1.0*pow(hd,1));
+  //dyx = 0.0;
+
+  if (fabs(dyx)< 0.001){
+    dyx = 0.0;
+  }
+
+  return dyx;
+}
+
 
 
 
