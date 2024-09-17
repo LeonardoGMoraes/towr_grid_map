@@ -9,7 +9,6 @@
 #include <boost/foreach.hpp>
 #define foreach BOOST_FOREACH
 
-
 /*
 Grid2Towr::Grid2Towr(ros::NodeHandle& nodeHandle)
   : nodeHandle_(nodeHandle),
@@ -25,8 +24,10 @@ Grid2Towr::Grid2Towr()
   //this->RandomGridmap();
   //this->SlopesGridmap();
   //this->SlopesSinRandomGridmap();
-  this->RosbagGridmap();
-  //this->SinGridmap();
+  //this->RosbagGridmap();
+  //this->Gaps();
+  //this->Slope();
+  this->SinGridmap();
   //this->Block01();
   //this->Block005();
   //this->Stairs();
@@ -35,6 +36,52 @@ Grid2Towr::Grid2Towr()
 }
 
 //Funcoes de geracao de gridmaps
+void Grid2Towr::Slope()
+{
+
+  const double g1 = 0.45;
+  const double g2 = 1.45;
+  const double g3 = 2.45;
+  const double g4 = 3.45;
+  const double g5 = 4.45;
+
+  const double a = 0.1;
+  const double b = -a*g1;
+  const double c = 0.25;
+  const double d = (a-c)*g2 + b;
+  const double e = 0.35;
+  const double f = (c-e)*g3 + d;
+  const double g = 0.45;
+  const double h = (e-g)*g4 + f;
+  const double i = 0.55;
+  const double j = (g-i)*g5 + h;
+
+
+  double hh;
+  const double start = 1.0;
+
+  map.add("elevation");
+  map.setFrameId("map");
+  map.setGeometry(Length(10, 3), 0.01);
+
+    for (GridMapIterator it(map); !it.isPastEnd(); ++it) {
+        Position position;
+        map.getPosition(*it, position);
+
+        if (position.x()<start){
+          hh = 0.0;
+        }
+
+        if ((position.x()>g1)&&(position.x()<=g2)){
+          hh = a*position.x()+b;
+        }
+        if (position.x()>g2){
+          hh = a*g2 + b +0.05;
+        }
+        map.at("elevation", *it) = hh;
+    }
+}
+
 void Grid2Towr::Colision(){
   const double a = 0.09;
   const double l = 0.8;
@@ -92,7 +139,7 @@ void Grid2Towr::Stairs2()
 void Grid2Towr::Stairs()
 {
 
-  const double a = 0.06;
+  const double a = 0.05;
   const double l = 0.8;
   double hh;
   const double start = 1.0;
@@ -134,12 +181,49 @@ void Grid2Towr::Stairs()
     }
 }
 
+void Grid2Towr::Gaps()
+{
+
+  const double a = 0.05;
+  const double l = 0.8;
+  double hh;
+  const double start = 1.0;
+
+  map.add("elevation");
+  map.setFrameId("map");
+  map.setGeometry(Length(10, 3), 0.02);
+
+  
+
+    for (GridMapIterator it(map); !it.isPastEnd(); ++it) {
+        Position position;
+        map.getPosition(*it, position);
+        hh=0;
+
+        if (position.x()<start){
+          hh = 0.0;
+        }
+
+        if ((position.x()>=1.0) && (position.x()<(1.0 + 0.25))){
+          hh = -1.0;
+        }
+
+        if ((position.x()>=(3.0)) &&  (position.x() < (3.0 + l))){
+          hh = 0.15;
+        }
+
+
+
+        map.at("elevation", *it) = hh;
+    }
+}
+
 void Grid2Towr::RosbagGridmap()
 {
 
   /**/
   rosbag::Bag bag;
-  bag.open("/home/leo/mestrado_ws/src/rosbags_mestrado/gridmap/terreno7_gridmap.bag", rosbag::bagmode::Read);
+  bag.open("/home/leo/mestrado_ws/src/rosbags_mestrado/gridmap/terreno11_gridmap.bag", rosbag::bagmode::Read);
   std::vector<std::string> topics;
   topics.push_back(std::string("/elevation_mapping/elevation_map"));
   int i = 0;
@@ -164,12 +248,12 @@ void Grid2Towr::RosbagGridmap()
       Position position;
       map.getPosition(*it, position);
       if (std::to_string(map.at("elevation", *it)) == "nan"){ 
-        map.at("elevation", *it) = 0.0; //Tratar nan
+        map.at("elevation", *it) = -1.0; //Tratar nan
       }
 
-      //if (position.x() < 0.75){
-      //  map.at("elevation", *it) = 0.0;
-      //}
+      if (position.x() < 0.7){
+        map.at("elevation", *it) = 0.0;
+      }
       /*
 
       //Conferir os valores do Grid
@@ -189,7 +273,7 @@ void Grid2Towr::RosbagGridmap()
   for (GridMapIterator it(map); !it.isPastEnd(); ++it) {
     Position currentPosition;
     map.getPosition(*it, currentPosition);
-    double radius = 0.04; //tava 0.1
+    double radius = 0.003; //tava 0.1 //acho que quanto menor, menos conta
     double mean = 0.0;
     double sumOfWeights = 0.0;
     // Compute weighted mean.
@@ -613,7 +697,7 @@ double Grid2Towr::GetElevation(double x, double y)
 {
   float felevation;
   try {
-    felevation = map.atPosition("elevation_filtered",{x,y},InterpolationMethods::INTER_LINEAR);
+    felevation = map.atPosition("elevation",{x,y},InterpolationMethods::INTER_LINEAR);
   }
   catch(...){
     felevation = 0; //If a point is off the grid
@@ -632,6 +716,10 @@ double Grid2Towr::GetHeightDerivWrtX2(double x, double y){
   if (fabs(dx)< 0.001){
     dx = 0.0; // avoid rounding errors
   }
+
+  //if ((fabs(x) >= 2.6) && x <= 2.63 ){
+  //  dx = 5/3; // avoid rounding errors
+  //}
 
   return dx;
 }

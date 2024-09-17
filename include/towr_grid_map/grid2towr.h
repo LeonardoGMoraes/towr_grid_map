@@ -19,7 +19,7 @@ public:
   GridMap map;
   GridMap outputMap;
   GridMap inputMap;
-  float hd = 0.1; //delta usado nas derivadas numericas
+  float hd = 0.01; //delta usado nas derivadas numericas
   //filters::FilterChain<grid_map::GridMap> filterChain_;
   //std::string filterChainParametersName_;
   //ros::NodeHandle& nodeHandle_;
@@ -40,6 +40,8 @@ public:
   void Stairs();
   void Stairs2();
   void Colision();
+  void Gaps();
+  void Slope();
 
   
   //altura no ponto (x,y)
